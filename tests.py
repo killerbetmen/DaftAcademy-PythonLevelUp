@@ -89,8 +89,8 @@ def test_registration():
         "id": 1,
         "name": "Jan",
         "surname": "Nowak",
-        "register_date": "2021-04-01",
-        "vaccination_date": "2021-04-09"
+        "register_date": datetime.today().strftime("%Y-%m-%d"),
+        "vaccination_date": "2021-04-28"
     }
 
 
@@ -104,11 +104,11 @@ def test_patient():
     assert response.status_code == 200
 
     response = client.get("/patient/2")
-    assert response.json() == {"id": 3,
+    assert response.json() == {"id": 2,
                                "name": "Jake",
                                "surname": "Muffin",
                                "register_date": datetime.today().strftime("%Y-%m-%d"),
-                               "vaccination_date": (datetime.today() + timedelta(17)).strftime("%Y-%m-%d")}
+                               "vaccination_date": (datetime.today() + timedelta(10)).strftime("%Y-%m-%d")}
     assert response.status_code == 200
 
     response = client.get("/patient/0")
