@@ -74,3 +74,20 @@ def test_password():
 
     response = client.get(f"/auth?")
     assert response.status_code == 401
+
+
+def test_registration():
+    json_file = {"name": "Lukasz",
+                 "surname": "Szymanski"}
+    response = client.post(
+        "/register",
+        json=json_file
+    )
+    assert response.status_code == 201
+    assert response.json() == {
+        "id": 1,
+        "name": "Jan",
+        "surname": "Nowak",
+        "register_date": "2021-04-01",
+        "vaccination_date": "2021-04-09"
+    }

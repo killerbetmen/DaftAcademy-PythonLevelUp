@@ -1,16 +1,30 @@
 import hashlib
-
 from fastapi import FastAPI, Response
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime,timedelta
 
 
 app = FastAPI()
 app.counter = 0
+app.patient_counter = 0
 
 
 class HelloResp(BaseModel):
     msg: str
+
+
+class Patient(BaseModel):
+    name: str
+    surname: str
+
+
+class SavePatient(BaseModel):
+    id: int
+    name: str
+    surname: str
+    register_date: str
+    vaccination_date: str
 
 
 @app.get('/')
@@ -64,3 +78,19 @@ def auth(password: Optional[str] = None, password_hash: Optional[str] = None):
         else:
             return Response(status_code=401)
     return Response(status_code=401)
+
+
+@app.post("/register", response_model=SavePatient, status_code=201)
+def patient_register(patient: Patient):
+    app.patient_counter += 1
+    today = datetime.now().astimezone().strftime("%Y-%m-%d")
+    register_day = str(today)
+    len_letters = len([i for i in patient.name + patient.surname if i.isalpha()])
+    vaccination_day = (datetime.now().astimezone() + timedelta(days=len_letters)).strftime('%Y-%m-%d')
+    return SavePatient(
+        id=app.patient_counter,
+        name=patient.name,
+        surname=patient.surname,
+        register_date=register_day,
+        vaccination_date=vaccination_day,
+    )
