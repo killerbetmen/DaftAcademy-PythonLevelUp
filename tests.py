@@ -90,7 +90,7 @@ def test_registration():
         "name": "Jan",
         "surname": "Nowak",
         "register_date": datetime.today().strftime("%Y-%m-%d"),
-        "vaccination_date": "2021-04-28"
+        "vaccination_date": "2021-04-28",
     }
 
 
@@ -100,7 +100,8 @@ def test_patient():
                                "name": "Jan",
                                "surname": "Nowak",
                                "register_date": datetime.today().strftime("%Y-%m-%d"),
-                               "vaccination_date": (datetime.today() + timedelta(8)).strftime("%Y-%m-%d")}
+                               "vaccination_date": (datetime.today() + timedelta(8)).strftime("%Y-%m-%d"),
+                               }
     assert response.status_code == 200
 
     response = client.get("/patient/2")
@@ -108,7 +109,8 @@ def test_patient():
                                "name": "Jake",
                                "surname": "Muffin",
                                "register_date": datetime.today().strftime("%Y-%m-%d"),
-                               "vaccination_date": (datetime.today() + timedelta(10)).strftime("%Y-%m-%d")}
+                               "vaccination_date": (datetime.today() + timedelta(10)).strftime("%Y-%m-%d"),
+                               }
     assert response.status_code == 200
 
     response = client.get("/patient/0")
