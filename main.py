@@ -8,6 +8,7 @@ from datetime import datetime,timedelta
 app = FastAPI()
 app.counter = 0
 app.patient_counter = 0
+app.patient_list = []
 
 
 class HelloResp(BaseModel):
@@ -87,10 +88,24 @@ def patient_register(patient: Patient):
     register_day = str(today)
     len_letters = len([i for i in patient.name + patient.surname if i.isalpha()])
     vaccination_day = (datetime.now().astimezone() + timedelta(days=len_letters)).strftime('%Y-%m-%d')
-    return SavePatient(
+    new_patient = SavePatient(
         id=app.patient_counter,
         name=patient.name,
         surname=patient.surname,
         register_date=register_day,
         vaccination_date=vaccination_day,
     )
+    app.patient_list.append(new_patient)
+    return new_patient
+
+
+@app.get("/patient/{id}", response_model=SavePatient)
+def patient(id: int):
+    if id < 1:
+        return Response(status_code=400)
+    elif id > len(app.patient_list):
+        return Response(status_code=404)
+    else:
+        i = app.patient_list[id]
+        client = SavePatient.parse_obj(i)
+        return client.json()

@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from main import app
 import pytest
+from datetime import datetime, timedelta
 
 client = TestClient(app)
 
@@ -77,8 +78,8 @@ def test_password():
 
 
 def test_registration():
-    json_file = {"name": "Lukasz",
-                 "surname": "Szymanski"}
+    json_file = {"name": "Jan",
+                 "surname": "Nowak"}
     response = client.post(
         "/register",
         json=json_file
@@ -91,3 +92,27 @@ def test_registration():
         "register_date": "2021-04-01",
         "vaccination_date": "2021-04-09"
     }
+
+
+def test_patient():
+    response = client.get("/patient/1")
+    assert response.json() == {"id": 1,
+                               "name": "Jan",
+                               "surname": "Nowak",
+                               "register_date": datetime.today().strftime("%Y-%m-%d"),
+                               "vaccination_date": (datetime.today() + timedelta(8)).strftime("%Y-%m-%d")}
+    assert response.status_code == 200
+
+    response = client.get("/patient/2")
+    assert response.json() == {"id": 3,
+                               "name": "Jake",
+                               "surname": "Muffin",
+                               "register_date": datetime.today().strftime("%Y-%m-%d"),
+                               "vaccination_date": (datetime.today() + timedelta(17)).strftime("%Y-%m-%d")}
+    assert response.status_code == 200
+
+    response = client.get("/patient/0")
+    assert response.status_code == 400
+
+    response = client.get("/patient/3")
+    assert response.status_code == 404
