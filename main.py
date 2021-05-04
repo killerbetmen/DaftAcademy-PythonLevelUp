@@ -142,9 +142,9 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
     session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
                                    f"{time}{app.secret_key}".encode()).hexdigest()
     response.set_cookie(key="session_token", value=session_token)
-    if len(app.token) >= 3:
-        app.token.pop(0)
-    app.token.append(session_token)
+    if len(app.session) >= 3:
+        app.session.pop(0)
+    app.session.append(session_token)
     response.status_code = 201
 
 
@@ -161,9 +161,9 @@ def login_token(credentials: HTTPBasicCredentials = Depends(security)):
     time = datetime.today().strftime("%Y-%m-%d")
     session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
                                    f"{time}{app.secret_key}".encode()).hexdigest()
-    if len(app.session) >= 3:
-        app.session.pop(0)
-    app.session.append(session_token)
+    if len(app.token) >= 3:
+        app.token.pop(0)
+    app.token.append(session_token)
     return {"token": session_token}
 
 
