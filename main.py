@@ -187,3 +187,33 @@ def welcome_token(token: str = "", format: str = ""):
         return HTMLResponse(content="<h1>Welcome!</h1>", status_code=200)
     else:
         return PlainTextResponse(content="Welcome!", status_code=200)
+
+
+@app.delete("/logout_session")
+def logout_session(format: str = "", session_token: str = Cookie(None)):
+    if session_token not in app.session:
+        raise HTTPException(status_code=401)
+
+    app.session.remove(session_token)
+    url = "/logged_out?format=" + format
+    return RedirectResponse(url=url, status_code=303)
+
+
+@app.delete("/logout_token")
+def logout_token(token: str = "", format: str = ""):
+    if (token == "") or (token not in app.token):
+        raise HTTPException(status_code=401)
+
+    app.token.remove(token)
+    url = "/logged_out?format=" + format
+    return RedirectResponse(url=url, status_code=303)
+
+
+@app.get("/logged_out", status_code=200)
+def logged_out(format: str = ""):
+    if format == "json":
+        return {"message": "Logged out!"}
+    elif format == "html":
+        return HTMLResponse(content="<h1>Logged out!</h1>", status_code=200)
+    else:
+        return PlainTextResponse(content="Logged out!", status_code=200)
