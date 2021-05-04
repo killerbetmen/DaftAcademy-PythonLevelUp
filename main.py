@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timedelta
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse,JSONResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
 import secrets
 
@@ -138,30 +138,32 @@ def login_session(response: Response, credentials: HTTPBasicCredentials = Depend
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    else:
-        time = datetime.today().strftime("%Y-%m-%d")
-        session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
-                                       f"{time}{app.secret_key}".encode()).hexdigest()
-        app.token.append(session_token)
-        if len(app.token) >= 3:
-            app.token.pop(0)
-        response.set_cookie(key="session_token", value=session_token)
-        response.status_code = 201
+    time = datetime.today().strftime("%Y-%m-%d")
+    session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
+                                   f"{time}{app.secret_key}".encode()).hexdigest()
+    response.set_cookie(key="session_token", value=session_token)
+    if len(app.token) >= 3:
+        app.token.pop(0)
+    app.token.append(session_token)
+    response.status_code = 201
 
 
 @app.post("/login_token", status_code=201)
 def login_token(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "4dm1n")
     correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
-    if not(correct_password and correct_username):
-        raise HTTPException(status_code=401)
-    else:
-        time = datetime.today().strftime("%Y-%m-%d")
-        session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
-                                       f"{time}{app.secret_key}".encode()).hexdigest()
-        app.session.append(session_token)
-        if len(app.session) >= 3:
-            app.session.pop(0)
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    time = datetime.today().strftime("%Y-%m-%d")
+    session_token = hashlib.sha256(f"{credentials.username}{credentials.password}"
+                                   f"{time}{app.secret_key}".encode()).hexdigest()
+    if len(app.session) >= 3:
+        app.session.pop(0)
+    app.session.append(session_token)
     return {"token": session_token}
 
 
