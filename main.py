@@ -164,3 +164,26 @@ def login_token(credentials: HTTPBasicCredentials = Depends(security)):
             app.session.pop(0)
     return {"token": session_token}
 
+
+@app.get("/welcome_session")
+def welcome_session(format: str = "", session_token: str = Cookie(None)):
+    if session_token not in app.session:
+        raise HTTPException(status_code=401)
+    if format == "json":
+        return {"message": "Welcome!"}
+    elif format == "html":
+        return HTMLResponse(content="<h1>Welcome!</h1>", status_code=200)
+    else:
+        return PlainTextResponse(content="Welcome!", status_code=200)
+
+
+@app.get("/welcome_token")
+def welcome_token(token: str = "", format: str = ""):
+    if (token == "") or (token not in app.token):
+        raise HTTPException(status_code=401)
+    if format == "json":
+        return {"message": "Welcome!"}
+    elif format == "html":
+        return HTMLResponse(content="<h1>Welcome!</h1>", status_code=200)
+    else:
+        return PlainTextResponse(content="Welcome!", status_code=200)
