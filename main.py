@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
 import secrets
-
+import sqlite3
 
 app = FastAPI()
 security = HTTPBasic()
@@ -219,3 +219,54 @@ def logged_out(format: str = ""):
         return HTMLResponse(content="<h1>Logged out!</h1>", status_code=200)
     else:
         return PlainTextResponse(content="Logged out!", status_code=200)
+
+
+"""DATABASE"""
+
+
+@app.on_event('startup')
+async def startup():
+    app.db_connection = sqlite3.connect('northwind.db')
+    app.db_connection.text_factory = lambda b: b.decode(errors='ignore')
+
+
+@app.on_event('shutdown')
+async def shutdown():
+    app.db_connection.close()
+
+
+@app.get('/categories')
+async def categories():
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        'SELECT CategoryID, CategoryName FROM Categories'
+    ).fetchall()
+    return {
+        'categories': [{'id': x['CategoryID'], 'name': x['CategoryName']} for x in data]
+    }
+
+
+@app.get('/customers')
+async def customers():
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        'SELECT CustomerID, CompanyName,'
+        'Address || " " || PostalCode || " " || City || " " || Country AS FullAddress FROM Customers'
+    ).fetchall()
+    return {
+        'customers': [{'id': x['CustomerID'],
+                       'name': x['CompanyName'],
+                       'full_address': x['FullAddress']} for x in data]
+    }
+
+
+@app.get("/products/{id}")
+async def product(id: int):
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        "SELECT ProductID, ProductName FROM Products WHERE ProductID = :id",
+        {'id': id}).fetchone()
+    if data is None:
+        raise HTTPException(status_code=404)
+    else:
+        return data
