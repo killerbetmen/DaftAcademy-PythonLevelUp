@@ -269,4 +269,7 @@ async def product(id: int):
     if data is None:
         raise HTTPException(status_code=404)
     else:
-        return data
+        return {
+            'id': id,
+            'name': data['ProductName']
+        }
