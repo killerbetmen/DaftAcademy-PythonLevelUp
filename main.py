@@ -275,26 +275,30 @@ async def product(id: int):
         }
 
 
-@app.get('/employees')
-async def employees(limit: Optional[int] = None, offset: Optional[int] = None, order: Optional[str] = None):
-    if order not in ['first_name', 'last_name', 'city']:
+def view_order(order):
+    if order not in {"first_name", "last_name", "city", "EmployeeID"}:
         raise HTTPException(status_code=400)
-    else:
-        app.db_connection.row_factory = sqlite3.Row
-        query = f'SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order}'
-        if limit is not None:
-            query += f'LIMIT {limit}'
-        if offset is not None:
-            query += f'OFFSET {offset}'
-        data = app.db_connection.execute(query).fetchall()
-        return {
-            'employees': [
-                {
-                    'id': x['EmployeeID'],
-                    'last_name': x['LastName'],
-                    'first_name': x['FirstName'],
-                    'city': x['City']
-                }
-                for x in data
-            ]
-        }
+
+
+@app.get("/employees")
+async def get_employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
+                        order: Optional[str] = Query('EmployeeID')):
+    view_order(order)
+    app.db_connection.row_factory = sqlite3.Row
+    query = f"SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order} ASC"
+    if limit is not None:
+        query += f" LIMIT {limit}"
+    if offset is not None:
+        query += f" OFFSET {offset}"
+    data = app.db_connection.execute(query).fetchall()
+    return {
+        "employees": [
+            {
+                "id": x["EmployeeID"],
+                "last_name": x["LastName"],
+                "first_name": x["FirstName"],
+                "city": x["City"],
+            }
+            for x in data
+        ]
+    }
