@@ -281,14 +281,14 @@ def view_order(order):
 
 
 @app.get("/employees")
-async def get_employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
-                        order: Optional[str] = Query('EmployeeID')):
+async def employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
+                    order: Optional[str] = Query('EmployeeID')):
     view_order(order)
     app.db_connection.row_factory = sqlite3.Row
     query = f"SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order} ASC"
-    if limit is not None:
+    if limit:
         query += f" LIMIT {limit}"
-    if offset is not None:
+    if offset:
         query += f" OFFSET {offset}"
     data = app.db_connection.execute(query).fetchall()
     return {
@@ -404,8 +404,7 @@ async def add_category(id: int, category: Category):
 @app.delete("/categories/{id}")
 async def delete_category(id: int):
     if not check_category(id):
-        raise HTTPException(
-            status_code=404)
+        raise HTTPException(status_code=404)
     cursor = app.db_connection.execute(
         "DELETE FROM Categories WHERE CategoryID = :category_id", {"category_id": id}
     )
