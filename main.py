@@ -284,11 +284,12 @@ def view_order(order):
 async def employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
                     order: Optional[str] = Query('EmployeeID')):
     view_order(order)
+    order = ''.join([word.capitalize() for word in order.split("_")])
     app.db_connection.row_factory = sqlite3.Row
     query = f"SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order} ASC"
-    if limit:
+    if limit is not None:
         query += f" LIMIT {limit}"
-    if offset:
+    if offset is not None:
         query += f" OFFSET {offset}"
     data = app.db_connection.execute(query).fetchall()
     return {
