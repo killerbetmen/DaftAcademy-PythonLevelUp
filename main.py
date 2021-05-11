@@ -276,9 +276,8 @@ async def product(id: int):
 
 
 @app.get('/employees')
-async def employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
-                    order: Optional[str] = Query('EmployeeID')):
-    if order not in {'first_name', 'last_name', 'city'}:
+async def employees(limit: Optional[int] = None, offset: Optional[int] = None, order: Optional[str] = None):
+    if order not in ['first_name', 'last_name', 'city']:
         raise HTTPException(status_code=400)
     else:
         app.db_connection.row_factory = sqlite3.Row
