@@ -356,3 +356,58 @@ async def orders(id: int):
             for x in data
         ]
     }
+
+
+class Category(BaseModel):
+    name: str
+
+
+@app.post('/categories')
+async def new_category(category: Category):
+    cursor = app.db_connection.execute(
+        f"INSERT INTO Categories (CategoryName) VALUES ('{category.name}')"
+    )
+    app.db_connection.commit()
+    new_category_id = cursor.lastrowid
+    app.db_connection.row_factory = sqlite3.Row
+    return {
+        "id": new_category_id,
+        "name": category.name
+    }
+
+
+def check_category(id: int):
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        "SELECT CategoryID FROM Categories WHERE CategoryID = :category_id",
+        {"category_id": id},
+    ).fetchone()
+    return False if data is None else True
+
+
+@app.put("/categories/{id}")
+async def add_category(id: int, category: Category):
+    if not check_category(id):
+        raise HTTPException(status_code=404)
+    cursor = app.db_connection.execute(
+        "UPDATE Categories SET CategoryName = :category_name WHERE CategoryID = :category_id",
+        {"category_name": category.name, "category_id": id},
+    )
+    app.db_connection.commit()
+    data = app.db_connection.execute(
+        "SELECT CategoryID, CategoryName FROM Categories WHERE CategoryID = :category_id",
+        {"category_id": id},
+    ).fetchone()
+    return {"id": data["CategoryID"], "name": data["CategoryName"]}
+
+
+@app.delete("/categories/{id}")
+async def delete_category(id: int):
+    if not check_category(id):
+        raise HTTPException(
+            status_code=404)
+    cursor = app.db_connection.execute(
+        "DELETE FROM Categories WHERE CategoryID = :category_id", {"category_id": id}
+    )
+    app.db_connection.commit()
+    return {"deleted": cursor.rowcount}
