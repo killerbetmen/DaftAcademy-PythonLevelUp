@@ -304,3 +304,23 @@ async def get_employees(response: Response, limit: Optional[int] = Query(None),
             for x in data
         ]
     }
+
+
+@app.get('/products_extended')
+async def products_extended():
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        'SELECT ProductID, ProductName, CategoryName, CompanyName FROM Products JOIN Categories'
+        ' ON Products.CategoryID = Categories.CategoryID JOIN Suppliers ON Products.SupplierID = Suppliers.SupplierID'
+    )
+    return {
+        'products_extended': [
+            {
+                'id': x['ProductID'],
+                'name': x['ProductName'],
+                'category': x['CategoryName'],
+                'supplier': x['CompanyName'],
+            }
+            for x in data
+        ]
+    }
