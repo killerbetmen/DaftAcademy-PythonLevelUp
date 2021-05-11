@@ -281,8 +281,10 @@ def view_order(order):
 
 
 @app.get("/employees")
-async def get_employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
+async def get_employees(response: Response, limit: Optional[int] = Query(None),
+                        offset: Optional[int] = Query(None),
                         order: Optional[str] = Query('EmployeeID')):
+    response.status_code = status.HTTP_200_OK
     view_order(order)
     app.db_connection.row_factory = sqlite3.Row
     query = f"SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order} ASC"
