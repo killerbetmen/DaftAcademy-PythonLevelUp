@@ -362,7 +362,7 @@ class Category(BaseModel):
     name: str
 
 
-@app.post('/categories')
+@app.post('/categories', status_code=status.HTTP_201_CREATED)
 async def new_category(category: Category):
     cursor = app.db_connection.execute(
         f"INSERT INTO Categories (CategoryName) VALUES ('{category.name}')"
