@@ -281,10 +281,8 @@ def view_order(order):
 
 
 @app.get("/employees")
-async def get_employees(response: Response, limit: Optional[int] = Query(None),
-                        offset: Optional[int] = Query(None),
+async def get_employees(limit: Optional[int] = Query(None), offset: Optional[int] = Query(None),
                         order: Optional[str] = Query('EmployeeID')):
-    response.status_code = status.HTTP_200_OK
     view_order(order)
     app.db_connection.row_factory = sqlite3.Row
     query = f"SELECT EmployeeID, LastName, FirstName, City FROM Employees ORDER BY {order} ASC"
@@ -320,6 +318,40 @@ async def products_extended():
                 'name': x['ProductName'],
                 'category': x['CategoryName'],
                 'supplier': x['CompanyName'],
+            }
+            for x in data
+        ]
+    }
+
+
+def check_product(id: int):
+    app.db_connection.row_factory = sqlite3.Row
+    data = app.db_connection.execute(
+        "SELECT ProductID FROM Products WHERE ProductID = :product_id",
+        {"product_id": id},
+    ).fetchone()
+    return False if data is None else True
+
+
+@app.get("/products/{id}/orders")
+async def orders(id: int):
+    if not check_product(id):
+        raise HTTPException(status_code=404)
+    data = app.db_connection.execute(
+        "SELECT Products.ProductID, Orders.OrderID, Customers.CompanyName, 'Order Details'.Quantity, "
+        "ROUND(('Order Details'.UnitPrice * 'Order Details'.Quantity) - ('Order Details'.Discount * "
+        "('Order Details'.UnitPrice * 'Order Details'.Quantity)), 2) AS TotalPrice FROM Products JOIN 'Order Details'"
+        " ON Products.ProductID = 'Order Details'.ProductID JOIN Orders ON 'Order Details'.OrderID = Orders.OrderID "
+        "JOIN Customers ON Orders.CustomerID = Customers.CustomerID WHERE Products.ProductID = :product_id",
+        {"product_id": id},
+    ).fetchall()
+    return {
+        "orders": [
+            {
+                "id": x["OrderID"],
+                "customer": x["CompanyName"],
+                "quantity": x["Quantity"],
+                "total_price": x["TotalPrice"],
             }
             for x in data
         ]
