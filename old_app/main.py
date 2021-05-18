@@ -8,8 +8,6 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
 import secrets
 import sqlite3
-from app import views
-
 
 app = FastAPI()
 security = HTTPBasic()
@@ -20,10 +18,6 @@ templates = Jinja2Templates(directory="templates")
 app.secret_key = "abracadabra"
 app.token = []
 app.session = []
-app.include_router(
-    views.router,
-    tags=["views"]
-)
 
 
 class HelloResp(BaseModel):
