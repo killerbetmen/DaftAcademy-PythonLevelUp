@@ -54,3 +54,21 @@ class Products(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class CategoryData(BaseModel):
+    CategoryID: PositiveInt
+    CategoryName: str
+
+    class Config:
+        orm_mode = True
+
+
+class SupplierProduct(BaseModel):
+    ProductID: PositiveInt
+    ProductName: str
+    Category: CategoryData
+    Discontinued: int
+
+    class Config:
+        orm_mode = True

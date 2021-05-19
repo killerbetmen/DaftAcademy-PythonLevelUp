@@ -35,9 +35,19 @@ async def get_supplier(supplier_id: PositiveInt, db: Session = Depends(get_db)):
     return db_supplier
 
 
-@router.get("/suppliers/{supplier_id}/products", response_model=List[schemas.Products])
-async def get_product(supplier_id: PositiveInt, db: Session = Depends(get_db)):
-    db_products = crud.get_product(db, supplier_id)
-    if not db_products:
-        raise HTTPException(status_code=404, detail="Supplier not found")
-    return db_products
+@router.get("/suppliers/{supplier_id}/products")
+async def get_supplier_products(supplier_id: PositiveInt, db: Session = Depends(get_db)):
+    db_supplier_products = crud.get_supplier_products_orm(db, supplier_id)
+    if not db_supplier_products:
+        raise HTTPException(status_code=404, detail="Supplier's products not found")
+    return list(
+        [schemas.SupplierProduct(
+            ProductID=row.Product.ProductID,
+            ProductName=row.Product.ProductName,
+            Category=schemas.CategoryData(
+                CategoryID=row.Category.CategoryID,
+                CategoryName=row.Category.CategoryName
+            ),
+            Discontinued=row.Product.Discontinued
+        ) for row in db_supplier_products]
+    )
