@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import PositiveInt
 from sqlalchemy.orm import Session
-from . import crud, schemas
+from . import crud, schemas, models
 from .database import get_db
 
 router = APIRouter()
@@ -51,3 +51,18 @@ async def get_supplier_products(supplier_id: PositiveInt, db: Session = Depends(
             Discontinued=row.Product.Discontinued
         ) for row in db_supplier_products]
     )
+
+
+@router.post("/suppliers", status_code=201, response_model=schemas.ReturnedSupplier)
+async def create_supplier(new_supplier: schemas.PostSupplier, db: Session = Depends(get_db)):
+
+    last_supplier = db.query(models.Supplier).order_by(models.Supplier.SupplierID.desc()).first()
+
+    orm_supplier = models.Supplier(**new_supplier.dict())
+    orm_supplier.SupplierID = last_supplier.SupplierID + 1
+
+    db.add(orm_supplier)
+    db.flush()
+    db.commit()
+
+    return orm_supplier
